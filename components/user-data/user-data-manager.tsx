@@ -51,9 +51,12 @@ export function UserDataManager() {
 
     try {
       // Use real API endpoint for deletion
-      await fetchJSON<{ ok: true }>(`https://cyncity-api.codetors.dev/auth/users/${id}`, {
-        method: "DELETE",
-      });
+      await fetchJSON<{ ok: true }>(
+        `https://cyncity-api.codetors.dev/auth/users/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
       setUsers((prev) => prev.filter((u) => u.id !== id));
       toast({
         title: "User deleted",
@@ -111,7 +114,7 @@ export function UserDataManager() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredUsers.map((user) => (
+          {filteredUsers.reverse().map((user) => (
             <Card key={user.id} className="hover:shadow-md transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
