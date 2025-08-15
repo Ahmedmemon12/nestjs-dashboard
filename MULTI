@@ -1,0 +1,205 @@
+"use client"
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useEffect, useMemo, useState } from "react"
+import { DocumentsManager } from "./documents-manager"
+
+type Dataset = {
+  id: string
+  name: string
+  category: string
+  status: "active" | "draft"
+  updatedAt: string
+  tags: string[]
+}
+
+const mock: Record<string, Dataset[]> = {
+  Pharmacies: [
+    { id: "p1", name: "Pharmacies Q2", category: "Healthcare", status: "active", updatedAt: new Date().toISOString(), tags: ["rx", "otc"] },
+  ],
+  Services: [
+    { id: "s1", name: "Services Registry", category: "Operations", status: "active", updatedAt: new Date().toISOString(), tags: ["directory"] },
+  ],
+  Events: [
+    { id: "e1", name: "Health Events 2024", category: "Engagement", status: "draft", updatedAt: new Date().toISOString(), tags: ["calendar"] },
+  ],
+}
+
+function TagInput({ value, onChange }: { value: string[]; onChange: (tags: string[]) => void }) {
+  const [input, setInput] = useState("")
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {value.map((t) => (
+        <span
+          key={t}
+          className="inline-flex items-center rounded-full bg-muted px-2 py-1 text-xs"
+        >
+          {t}
+          <button
+            className="ml-1 text-muted-foreground hover:text-foreground"
+            onClick={() => onChange(value.filter((x) => x !== t))}
+            aria-label={`Remove tag ${t}`}
+          >
+            ×
+          </button>
+        </span>
+      ))}
+      <Input
+        placeholder="Add tag"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && input.trim()) {
+            const t = input.trim().toLowerCase()
+            if (!value.includes(t)) onChange([...value, t])
+            setInput("")
+          }
+        }}
+        className="w-32"
+      />
+    </div>
+  )
+}
+
+export function DatasetsTabs() {
+  const [tab, setTab] = useState<"Pharmacies" | "Services" | "Events" | "Documents">("Pharmacies")
+  const [query, setQuery] = useState("")
+  const [rows, setRows] = useState<Record<string, Dataset[]>>(mock)
+
+  const visible = useMemo(() => {
+    if (tab === "Documents") return []
+    const s = query.trim().toLowerCase()
+    if (!s) return rows[tab]
+    return rows[tab].filter((d) => d.name.toLowerCase().includes(s) || d.category.toLowerCase().includes(s))
+  }, [rows, tab, query])
+
+  useEffect(() => {
+    // Simulate network
+  }, [])
+
+  return (
+    <Tabs value={tab} onValueChange={(v) => setTab(v as any)} className="space-y-4">
+      <TabsList className="flex flex-wrap">
+        <TabsTrigger value="Pharmacies">Pharmacies</TabsTrigger>
+        <TabsTrigger value="Services">Services</TabsTrigger>
+        <TabsTrigger value="Events">Events</TabsTrigger>
+        <TabsTrigger value="Documents">Documents</TabsTrigger>
+      </TabsList>
+
+      {tab !== "Documents" && (
+        <div className="flex items-center gap-2">
+          <Input placeholder="Search datasets..." value={query} onChange={(e) => setQuery(e.target.value)} />
+          <Button variant="outline">New Dataset</Button>
+        </div>
+      )}
+
+      <TabsContent value="Pharmacies">
+        <Card>
+          <CardContent className="pt-6">
+            <DatasetTable
+              data={visible}
+              onChange={(id, patch) =>
+                setRows((prev) => ({
+                  ...prev,
+                  Pharmacies: prev["Pharmacies"].map((d) => (d.id === id ? { ...d, ...patch } : d)),
+                }))
+              }
+            />
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="Services">
+        <Card>
+          <CardContent className="pt-6">
+            <DatasetTable
+              data={visible}
+              onChange={(id, patch) =>
+                setRows((prev) => ({
+                  ...prev,
+                  Services: prev["Services"].map((d) => (d.id === id ? { ...d, ...patch } : d)),
+                }))
+              }
+            />
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="Events">
+        <Card>
+          <CardContent className="pt-6">
+            <DatasetTable
+              data={visible}
+              onChange={(id, patch) =>
+                setRows((prev) => ({
+                  ...prev,
+                  Events: prev["Events"].map((d) => (d.id === id ? { ...d, ...patch } : d)),
+                }))
+              }
+            />
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="Documents">
+        <Card>
+          <CardContent className="pt-6">
+            <DocumentsManager />
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
+  )
+}
+
+function DatasetTable({
+  data,
+  onChange,
+}: {
+  data: Dataset[]
+  onChange: (id: string, patch: Partial<Dataset>) => void
+}) {
+  return (
+    <div className="overflow-x-auto rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Dataset Name</TableHead>
+            <TableHead>Category</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Last Updated</TableHead>
+            <TableHead>Tags</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {data.map((d) => (
+            <TableRow key={d.id}>
+              <TableCell>{d.name}</TableCell>
+              <TableCell>{d.category}</TableCell>
+              <TableCell>
+                <select
+                  className="rounded-md border bg-background p-1 text-sm"
+                  value={d.status}
+                  onChange={(e) => onChange(d.id, { status: e.target.value as any })}
+                >
+                  <option value="active">active</option>
+                  <option value="draft">draft</option>
+                </select>
+              </TableCell>
+              <TableCell className="text-muted-foreground">
+                {new Date(d.updatedAt).toLocaleString()}
+              </TableCell>
+              <TableCell>
+                <TagInput value={d.tags} onChange={(tags) => onChange(d.id, { tags })} />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  )
+}
