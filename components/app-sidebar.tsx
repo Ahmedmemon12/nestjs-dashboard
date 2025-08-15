@@ -25,13 +25,13 @@ import {
 
 const items = [
   { title: "Dashboard Overview", url: "/dashboard", icon: LayoutDashboard },
-  { title: "User & Dataset Management", url: "/users", icon: Users },
+  // { title: "User & Dataset Management", url: "/users", icon: Users },
   { title: "User Data", url: "/user-data", icon: Database },
   { title: "Datasets", url: "/datasets", icon: Database },
-  { title: "Analytics & Reports", url: "/analytics", icon: BarChart3 },
+  // { title: "Analytics & Reports", url: "/analytics", icon: BarChart3 },
   { title: "Event Management", url: "/events", icon: CalendarDays },
-  { title: "Service Directory", url: "/directory", icon: Building2 },
-  { title: "Settings", url: "/settings", icon: Settings },
+  // { title: "Service Directory", url: "/directory", icon: Building2 },
+  // { title: "Settings", url: "/settings", icon: Settings },
 ];
 
 export function AppSidebar() {
